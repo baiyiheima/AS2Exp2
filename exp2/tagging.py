@@ -105,7 +105,7 @@ if __name__ == '__main__':
     fdev = open(args.predict_file, 'r', encoding='utf-8')
     devset = json.load(fdev)
 
-    for dataset, path, name in zip((trainset, devset), (args.train_file, args.predict_file), ('train', 'dev')):
+    for dataset, path, name in zip((devset, trainset, devset), (args.predict_file, args.train_file, args.predict_file), ('dev', 'train', 'dev')):
         tagging(dataset, nlp)
         output_path = os.path.join(args.output_dir, "{}.tagged.json".format(os.path.basename(path)[:-5]))
         json.dump(dataset, open(output_path, 'w', encoding='utf-8'))
