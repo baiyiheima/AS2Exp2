@@ -21,6 +21,8 @@ def parse_args():
                         help="WikiQA json for training. E.g., wikicTrain.json")
     parser.add_argument("--predict_file", default='./data/WikiQA/wikicDev.json', type=str,
                         help="WikiQA json for predictions. E.g., wikicDev.json or test-v1.1.json")
+    parser.add_argument("--test_file", default='./data/WikiQA/wikicTest.json', type=str,
+                        help="WikiQA json for predictions. E.g., wikicDev.json or test-v1.1.json")
     return parser.parse_args()
 
 
@@ -69,10 +71,8 @@ def tagging(dataset, nlp, entitiesSet):
             question = qas['question']
             question_tagging_output = nlp.annotate(urllib.parse.quote(question),
                                                   properties={'annotators': 'ner', 'outputFormat': 'json'})
-            if question == "what does the federal reserve do":
-                print(question)
             # assert the question length is not changed
-            if True or len(question.strip()) == question_tagging_output['sentences'][-1]['tokens'][-1]['characterOffsetEnd']:
+            if len(question.strip()) == question_tagging_output['sentences'][-1]['tokens'][-1]['characterOffsetEnd']:
                 question_entities, entitiesSet = parse_output(question, question_tagging_output, len(question) - len(question.lstrip()), entitiesSet)
             else:
                 question_entities = []
@@ -89,8 +89,6 @@ def tagging(dataset, nlp, entitiesSet):
                 answer_entities, entitiesSet = parse_output(answer, answer_tagging_output,
                                                  len(answer) - len(answer.lstrip()), entitiesSet)
             else:
-                #print(len(answer.strip()))
-                #print(answer_tagging_output['sentences'][-1]['tokens'][-1]['characterOffsetEnd'])
                 answer_entities = []
                 skip_answer_cnt += 1
                 logger.info('Skipped answer due to offset mismatch:')
@@ -116,18 +114,22 @@ if __name__ == '__main__':
     # register corenlp server
     nlp = StanfordCoreNLP('http://localhost:9753')
 
+
     # load train and dev datasets
     ftrain = open(args.train_file, 'r', encoding='utf-8')
     trainset = json.load(ftrain)
     fdev = open(args.predict_file, 'r', encoding='utf-8')
     devset = json.load(fdev)
+    ftest = open(args.test_file, 'r', encoding='utf-8')
+    testset = json.load(ftest)
 
     #for dataset, path, name in zip((trainset, devset), (args.train_file, args.predict_file), ('train', 'dev')):
-    for dataset, path, name in zip((devset, trainset, devset), (args.predict_file, args.train_file, args.predict_file),
-                                   ('dev', 'train', 'dev')):
+    for dataset, path, name in zip((trainset, devset, testset), (args.train_file, args.predict_file, args.test_file),
+                                   ('train', 'dev', 'test')):
         entitiesSet = set()
         tagging(dataset, nlp, entitiesSet)
-        #output_path = os.path.join(args.output_dir, "{}.tagged.json".format(os.path.basename(path)[:-5]))
-        #json.dump(dataset, open(output_path, 'w', encoding='utf-8'))
+        output_path = os.path.join(args.output_dir, "{}.tagged.json".format(os.path.basename(path)[:-5]))
+        json.dump(dataset, open(output_path, 'w', encoding='utf-8'))
         logger.info('Finished tagging {} set'.format(name))
-        nlp.word_token
+
+
