@@ -3,6 +3,7 @@ import os
 import pickle
 from transformers import BertModel, BertTokenizer
 from data_preprocessing import tokenization
+from tqdm import tqdm
 
 
 class QASExample(object):
@@ -120,7 +121,7 @@ class Examples_To_Features_Converter(object):
                  max_seq_length,
                  max_question_length,
                  max_answer_length):
-        for(example_idx, example) in enumerate(examples):
+        for example in tqdm(examples):
 
             tokenization_info = self.all_tokenization_info[example.id]
 
