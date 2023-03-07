@@ -38,3 +38,12 @@ args = parser.parse_args()
 
 def train(args):
     model = BERT(args)
+    if torch.cuda.is_available():
+        model.cuda()
+    lossfuction = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+    epoch = args.epoch
+    print_every_batch = 10
+    for k in range(epoch):
+        model.train()
+        print_avg_loss = 0
